@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+<body>
+<nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Brand</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="#">Link <span class="sr-only">(current)</span></a></li>
+                <li><a href="#">Link</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                       aria-expanded="false">Dropdown <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">Separated link</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">One more separated link</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <form class="navbar-form navbar-left">
+                <div class="form-group">
+                    <input type="text" class="form-control" placeholder="Search">
+                </div>
+                <button type="submit" class="btn btn-default">Submit</button>
+            </form>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="#">Link</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                       aria-expanded="false">Dropdown <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">Separated link</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+</nav>
+<div class="panel panel-primary">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">聊天室</h3>
+    </div>
+    <div class="panel-body">
+        用户名:<input type="text" id="username">&nbsp;
+        目标对象:<input type="text" id="to_user">&nbsp;<button class="btn btn-info" id="create_link"
+                                                           onclick="create_link()">创建链接
+    </button>
+        <div id="chat_window" style="width: 400px;height: 300px;">
+
+        </div>
+        <br>
+        <div>
+            <button id="btn_send" class="btn btn-success pull-right">发送消息</button>
+            <input type="text" id="send_msg" class="form-control pull-right" style="width: 600px;height: 35px">
+
+        </div>
+    </div>
+</div>
+
+<script>
+    var url = 'ws://127.0.0.1:8000/ws/';
+    var ws = null;
+
+    function create_link() {
+        var username = document.getElementById('username');
+        ws = new WebSocket(url + username.value);
+
+        ws.onmessage = function (server_msg) {
+            msg = JSON.parse(server_msg.data);
+            create_chat('y', msg);
+        };
+    }
+
+    function create_chat(self, content) {
+        if (self == 'w') {
+            self = 'right';
+            var spantag = document.createElement('span');
+            spantag.innerText = content.send_msg;
+            var spantag1 = document.createElement('span');
+            spantag1.innerText = ':我';
+        } else {
+            self = 'left';
+            var spantag = document.createElement('span');
+            spantag.innerText = content.send_user+':';
+            var spantag1 = document.createElement('span');
+            spantag1.innerText = content.send_msg;
+        }
+        var divtag = document.createElement('div');
+        divtag.style = 'text-align:' + self;
+
+        divtag.appendChild(spantag);
+        divtag.appendChild(spantag1);
+        var chat_window = document.getElementById('chat_window');
+        chat_window.appendChild(divtag);
+    }
+
+    document.getElementById('btn_send').addEventListener('click', function () {
+        var send_msg = document.getElementById('send_msg');
+        var to_user=document.getElementById('to_user');
+        send_msg_json={
+            send_msg:send_msg.value,
+            to_user:to_user.value
+        };
+        ws.send(JSON.stringify(send_msg_json));
+
+        var s_msg={send_msg:send_msg.value};
+        create_chat('w',s_msg);
+        send_msg.value = ''
+    })
+
+</script>
+</body>
+</html>
